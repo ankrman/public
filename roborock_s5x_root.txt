@@ -1,0 +1,62 @@
+#- (1) - token vom Roborock besorgen => App "Flolevac" unter Android oder andere Möglichkeiten (GIDF)
+
+#- (2) - linux --------------------------------------------------------------------------------------
+apt-get update
+apt-get install wget libffi-dev libssl-dev python3-pip
+pip3 install -U setuptools
+pip3 install python-miio
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+#- (!) - SCHRITT (1) erledigt? ----------------------------------------------------------------------
+mirobo --ip 192.168.178.111 --token 12312312312312312312312312312312 status
+#- (!) - muss funktionieren, sonst falsches token! --------------------------------------------------
+
+apt-get install ccrypt
+apt-get install git
+git clone https://github.com/dgiese/dustcloud.git
+cd dustcloud
+cd devices/xiaomi.vacuum/firmwarebuilder/
+
+#- (!) - korrektes Image auswählen, v11_001886.fullos.pkg ist nur für Roborock 2nd Gen aktuell! -----
+wget https://dustbuilder.xvm.mit.edu/pkg/s5/v11_001886.fullos.pkg
+
+#- (i) - optional, falls noch keine Schlüsselpaar erstellt ------------------------------------------
+ssh-keygen -t rsa -b 4096 -C "no@reply.xxx"
+cp ~/.ssh/id_rsa.pub .
+
+#- (i) - es können mit mehreren -k mehrere pub keys ins Image eingebaut werden ----------------------
+./imagebuilder.sh -f v11_001886.fullos.pkg -k id_rsa.pub -k raspi.pub -k hassio.pub -k r3p.pub -k st11.pub -t Europe/Berlin --disable-firmware-updates --disable-logs --ntpserver=192.168.178.1
+
+#- (i) FLASHVORGANG ---------------------------------------------------------------------------------
+python3 flasher.py -a 192.168.178.111 -t 12312312312312312312312312312312 -f output/v11_001886.fullos.pkg
+
+#- (3) - auf zum rockrobo ---------------------------------------------------------------------------
+
+ssh root@192.168.178.111
+
+apt-get update
+apt-get wget
+
+wget https://github.com/dgiese/dustcloud/blob/master/devices/xiaomi.vacuum/scripts/morestorage.sh
+wget https://github.com/dgiese/dustcloud/blob/master/devices/xiaomi.vacuum/scripts/disable_logging.sh
+chmod +x morestorage.sh
+./morestorage.sh
+chmod +x disable_logging.sh
+./disable_logging.sh
+
+wget https://github.com/rand256/valetudo/releases/download/0.8.1/valetudo.tar.gz
+tar -xzvf valetudo.tar.gz
+mv valetudo /usr/local/bin/
+chmod +x /usr/local/bin/valetudo
+rm valetudo.tar.gz
+
+wget https://raw.githubusercontent.com/rand256/valetudo/testing/deployment/valetudo.conf
+mv valetudo.conf /etc/init/
+
+wget https://raw.githubusercontent.com/rand256/valetudo/testing/deployment/etc/hosts
+# kopieren nach /etc/hosts oder per VI(M) mit Inhalt von soeben dl'd Datei ergänzen
+wget https://raw.githubusercontent.com/rand256/valetudo/testing/deployment/etc/rc.local
+# /etc/rc.local per VI(M) mit Inhalt von soeben dl'd Datei ergänzen
+
+service valetudo start
