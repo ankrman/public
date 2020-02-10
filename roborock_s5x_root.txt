@@ -36,16 +36,16 @@ python3 flasher.py -a 192.168.178.111 -t 12312312312312312312312312312312 -f out
 ssh root@192.168.178.111
 
 apt-get update
-apt-get wget
+apt-get install wget
 
-wget https://github.com/dgiese/dustcloud/blob/master/devices/xiaomi.vacuum/scripts/morestorage.sh
-wget https://github.com/dgiese/dustcloud/blob/master/devices/xiaomi.vacuum/scripts/disable_logging.sh
+wget https://raw.githubusercontent.com/dgiese/dustcloud/master/devices/xiaomi.vacuum/scripts/morestorage.sh
+wget https://raw.githubusercontent.com/dgiese/dustcloud/master/devices/xiaomi.vacuum/scripts/disable_logging.sh
 chmod +x morestorage.sh
 ./morestorage.sh
 chmod +x disable_logging.sh
 ./disable_logging.sh
 
-wget https://github.com/rand256/valetudo/releases/download/0.8.1/valetudo.tar.gz
+wget https://github.com/rand256/valetudo/releases/download/0.9.0-beta/valetudo.tar.gz
 tar -xzvf valetudo.tar.gz
 mv valetudo /usr/local/bin/
 chmod +x /usr/local/bin/valetudo
